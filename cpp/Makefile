@@ -1,6 +1,6 @@
-CXX = clang++
+CXX = g++
 CXXFLAGS = -Wall -g
-CXX11 = -std=c++11
+CXX11 = -std=c++0x
 
 all: diamond_square.o main.o utilities.o
 	$(CXX) $(CXXFLAGS) $(CXX11) -o terrain_generation diamond_square.o main.o utilities.o

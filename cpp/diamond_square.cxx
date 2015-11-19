@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <functional>
 #include <random>
 #include <queue>
 

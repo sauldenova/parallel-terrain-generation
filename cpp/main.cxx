@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
+ 
 #include "diamond_square.h"
 #include "utilities/utilities.h"
 

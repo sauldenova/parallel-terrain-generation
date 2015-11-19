@@ -6,6 +6,7 @@
  * The utilities header file
  */
 
+#include <cstdint>
 #include <vector>
 
 namespace TerrainGeneration {
