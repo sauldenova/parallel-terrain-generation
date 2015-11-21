@@ -6,6 +6,7 @@
  * Main
  */
 
+#include <ctime>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "diamond_square.h"
 #include "utilities/utilities.h"
 
+FILE * outputFile;
 static TerrainGeneration::util::color plain(0,64,0), forest(116,182,133), sea(55,0,0), coast(106,53,0), mount(147,157,167), mountain(226,223,216);
 
 static char convertToChar(int16_t value) {
@@ -31,9 +33,9 @@ static char convertToChar(int16_t value) {
 static void printCharMap(std::vector<std::vector<int16_t>> map) {
     for (auto x : map) {
         for (auto y : x) {
-            printf("%c", convertToChar(y));
+            fprintf(outputFile, "%c", convertToChar(y));
         }
-        printf("\n");
+        fprintf(outputFile, "\n");
     }
 }
 
@@ -68,7 +70,7 @@ static TerrainGeneration::util::color convertToColor(int16_t value) {
 
 static void printBitmap(uint16_t n, std::vector<std::vector<int16_t>> map) {
     std::ofstream bitmap;
-    bitmap.open("result.bmp", std::ofstream::binary);
+    bitmap.open("map.bmp", std::ofstream::binary);
     if (!bitmap.is_open()) {
         std::cout << "Error opening file result.bmp" << std::endl;
         exit(0);
@@ -128,8 +130,25 @@ static void printBitmap(uint16_t n, std::vector<std::vector<int16_t>> map) {
 }
 
 int main(int argc, char** argv) {
-    int n = 1025;
+    struct timespec tstart={0,0}, tend={0,0};
+    outputFile = fopen("map.txt", "w");
+    int n = 4097;
+
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
     auto map = TerrainGeneration::diamondSquare(n);
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+
+    printCharMap(map);
     printBitmap(n, map);
+
+    double passedTime = ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec);
+
+    #ifdef PARALLEL
+    printf("Diamond square parallel time: %.5lf\n", passedTime);
+    #else
+    printf("Diamond square time: %.5lf\n", passedTime);
+    #endif
+
+    fclose(outputFile);
     return 0;
 }

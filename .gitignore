@@ -402,4 +402,6 @@ gradle-app.setting
 
 # Project results
 terrain_generation
-result.bmp
+terrain_generation_parallel
+map.txt
+map.bmp

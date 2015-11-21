@@ -49,6 +49,9 @@ namespace TerrainGeneration {
         for (int offset = n - 1; offset > 1; offset /= 2) {
 
             // Diamond generation
+            #ifdef PARALLEL
+            #pragma omp parallel for shared(map, terrain_gen, factor, offset)
+            #endif
             for (int y = 0; y < n - 1; y += offset) {
                 for (int x = 0; x < n - 1; x += offset) {
                     map[x + (offset / 2)][y + (offset / 2)] = (map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
@@ -57,6 +60,9 @@ namespace TerrainGeneration {
             }
 
             // Square generation
+            #ifdef PARALLEL
+            #pragma omp parallel for shared(map, terrain_gen, factor, offset)
+            #endif
             for (int y = 0; y < n; y += offset / 2) {
                 for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
                     double sides = 4.0;
