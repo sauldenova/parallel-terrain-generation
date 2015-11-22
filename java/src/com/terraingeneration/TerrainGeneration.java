@@ -41,9 +41,9 @@ public class TerrainGeneration {
      * Print the map as a char map to the file map.txt
      * @param map the map to print
      */
-    private static void printCharMap(short[][] map) {
+    private static void printCharMap(String fileName, short[][] map) {
         try {
-            PrintWriter writer = new PrintWriter("map.txt", "UTF-8");
+            PrintWriter writer = new PrintWriter(fileName, "UTF-8");
             for (short[] row : map) {
                 for (short elem : row) {
                     writer.write(convertToChar(elem));
@@ -95,7 +95,7 @@ public class TerrainGeneration {
      * Print the map into a bitmap named map.bmp
      * @param map the map structure
      */
-    private static void printBitMap(int n, short[][] map) {
+    private static void printBitMap(String fileName, int n, short[][] map) {
         try {
             BufferedImage image = new BufferedImage(n, n, BufferedImage.TYPE_INT_RGB);
             for (int x = 0; x < n; x++) {
@@ -106,7 +106,7 @@ public class TerrainGeneration {
                 }
             }
 
-            ImageIO.write(image, "bmp", new File("map.bmp"));
+            ImageIO.write(image, "bmp", new File(fileName));
         } catch (IOException e) {
             System.out.println(e.getLocalizedMessage());
         }
@@ -117,17 +117,29 @@ public class TerrainGeneration {
      * @param args the function arguments
      */
     public static void main(String[] args) {
+        long startTime, elapsedSequentialTime, elapsedParallelTime;
+        short[][] map;
         int n = 4097;
 
         try {
-            long startTime = System.nanoTime();
-            short[][] map = DiamondSquare.generate(n);
-            long elapsedTime = System.nanoTime() - startTime;
+            startTime = System.nanoTime();
+            map = DiamondSquare.generate(n, false);
+            elapsedSequentialTime = System.nanoTime() - startTime;
 
-            printCharMap(map);
-            printBitMap(n, map);
+            printCharMap("map.txt", map);
+            printBitMap("map.bmp", n, map);
 
-            System.out.println("Elapsed time: " + elapsedTime);
+            System.out.println("Elapsed time: " + elapsedSequentialTime);
+
+            startTime = System.nanoTime();
+            map = DiamondSquare.generate(n, true);
+            elapsedParallelTime = System.nanoTime() - startTime;
+
+            printCharMap("map_parallel.txt", map);
+            printBitMap("map_parallel.bmp", n, map);
+
+            System.out.println("Elapsed parallel time: " + elapsedParallelTime);
+            System.out.println("Speedup: " + ((double)elapsedSequentialTime / (double)elapsedParallelTime));
         } catch(IllegalArgumentException e) {
             System.out.println(e.getLocalizedMessage());
         }

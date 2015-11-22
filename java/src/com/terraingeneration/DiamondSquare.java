@@ -1,7 +1,7 @@
 package com.terraingeneration;
 
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 /**
  * Diamond square implementation
@@ -26,64 +26,119 @@ public class DiamondSquare {
         return result;
     }
 
-    public static short[][] generate(int n) throws IllegalArgumentException {
+    public static short[][] generate(int n, boolean parallel) throws IllegalArgumentException {
         if (((n - 1) & (n - 2)) != 0) {
             throw new IllegalArgumentException("N must be of the form 2^n + 1");
         }
 
         short[][] map = new short[n][n];
 
-        double factor = 1.0;
-
         map[0][0] = 10;
         map[0][n - 1] = 10;
         map[n - 1][0] = 10;
         map[n - 1][n - 1] = 10;
 
-        for (int offset = n - 1; offset > 1; offset /= 2) {
+        if (parallel) {
+            double globalFactor = 1.0;
 
-            // Diamond generation
-            for (int y = 0; y < n - 1; y += offset) {
-                for (int x = 0; x < n - 1; x += offset) {
-                    map[x + (offset / 2)][y + (offset / 2)] = (short)((map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
-                            randomTerrainGenerator() * factor);
-                }
+            for (int globalOffset = n - 1; globalOffset > 1; globalOffset /= 2) {
+                final int offset = globalOffset;
+                final double factor = globalFactor;
+
+                // Diamond generation
+                IntStream.range(0, (n - 2) / offset).parallel().forEach(y -> {
+                    y *= offset;
+                    for (int x = 0; x < n - 1; x += offset) {
+                        map[x + (offset / 2)][y + (offset / 2)] = (short) ((map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
+                                randomTerrainGenerator() * factor);
+                    }
+                });
+
+                // Square generation
+                IntStream.range(0, (n - 1) / (offset / 2)).parallel().forEach(y -> {
+                    y *= (offset / 2);
+
+                    for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
+                        double sides = 4.0;
+                        double result = 0.0;
+                        if (x == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x - (offset / 2)][y];
+                        }
+
+                        if (x == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x + (offset / 2)][y];
+                        }
+
+                        if (y == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y - (offset / 2)];
+                        }
+
+                        if (y == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y + (offset / 2)];
+                        }
+
+                        map[x][y] = (short) ((result / sides) + randomTerrainGenerator() * factor);
+                    }
+                });
+
+                globalFactor *= DecrementFactor;
             }
+        } else {
+            double factor = 1.0;
 
-            // Square generation
-            for (int y = 0; y < n; y += offset / 2) {
-                for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
-                    double sides = 4.0;
-                    double result = 0.0;
-                    if (x == 0) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x - (offset / 2)][y];
+            for (int offset = n - 1; offset > 1; offset /= 2) {
+
+                // Diamond generation
+                for (int y = 0; y < n - 1; y += offset) {
+                    for (int x = 0; x < n - 1; x += offset) {
+                        map[x + (offset / 2)][y + (offset / 2)] = (short) ((map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
+                                randomTerrainGenerator() * factor);
                     }
-
-                    if (x == n - 1) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x + (offset / 2)][y];
-                    }
-
-                    if (y == 0) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x][y - (offset / 2)];
-                    }
-
-                    if (y == n - 1) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x][y + (offset / 2)];
-                    }
-
-                    map[x][y] = (short)((result / sides) + randomTerrainGenerator() * factor);
                 }
-            }
 
-            factor *= DecrementFactor;
+                // Square generation
+                for (int y = 0; y < n; y += offset / 2) {
+                    for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
+                        double sides = 4.0;
+                        double result = 0.0;
+                        if (x == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x - (offset / 2)][y];
+                        }
+
+                        if (x == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x + (offset / 2)][y];
+                        }
+
+                        if (y == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y - (offset / 2)];
+                        }
+
+                        if (y == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y + (offset / 2)];
+                        }
+
+                        map[x][y] = (short) ((result / sides) + randomTerrainGenerator() * factor);
+                    }
+                }
+
+                factor *= DecrementFactor;
+            }
         }
 
         return map;
