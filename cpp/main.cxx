@@ -14,7 +14,6 @@
 #include "diamond_square.h"
 #include "utilities/utilities.h"
 
-FILE * outputFile;
 static TerrainGeneration::util::color plain(0,64,0), forest(116,182,133), sea(55,0,0), coast(106,53,0), mount(147,157,167), mountain(226,223,216);
 
 static char convertToChar(int16_t value) {
@@ -30,13 +29,15 @@ static char convertToChar(int16_t value) {
     return '.';
 }
 
-static void printCharMap(std::vector<std::vector<int16_t>> map) {
+static void printCharMap(std::string fileName, std::vector<std::vector<int16_t>> map) {
+    FILE * outputFile = fopen(fileName.c_str(), "w");
     for (auto x : map) {
         for (auto y : x) {
             fprintf(outputFile, "%c", convertToChar(y));
         }
         fprintf(outputFile, "\n");
     }
+    fclose(outputFile);
 }
 
 static TerrainGeneration::util::color lerp(TerrainGeneration::util::color c1, TerrainGeneration::util::color c2, float value) {
@@ -68,11 +69,11 @@ static TerrainGeneration::util::color convertToColor(int16_t value) {
     //return TerrainGeneration::util::color(0, 0, 0);
 }
 
-static void printBitmap(uint16_t n, std::vector<std::vector<int16_t>> map) {
+static void printBitmap(std::string fileName, uint16_t n, std::vector<std::vector<int16_t>> map) {
     std::ofstream bitmap;
-    bitmap.open("map.bmp", std::ofstream::binary);
+    bitmap.open(fileName, std::ofstream::binary);
     if (!bitmap.is_open()) {
-        std::cout << "Error opening file result.bmp" << std::endl;
+        std::cout << "Error opening file " << fileName << std::endl;
         exit(0);
     }
 
@@ -130,25 +131,33 @@ static void printBitmap(uint16_t n, std::vector<std::vector<int16_t>> map) {
 }
 
 int main(int argc, char** argv) {
+    std::vector<std::vector<int16_t>> map;
     struct timespec tstart={0,0}, tend={0,0};
-    outputFile = fopen("map.txt", "w");
     int n = 4097;
 
     clock_gettime(CLOCK_MONOTONIC, &tstart);
-    auto map = TerrainGeneration::diamondSquare(n);
+    map = TerrainGeneration::diamondSquare(n, false);
     clock_gettime(CLOCK_MONOTONIC, &tend);
 
-    printCharMap(map);
-    printBitmap(n, map);
+    printCharMap("map.txt", map);
+    printBitmap("map.bmp", n, map);
 
     double passedTime = ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec);
 
-    #ifdef PARALLEL
-    printf("Diamond square parallel time: %.5lf\n", passedTime);
-    #else
-    printf("Diamond square time: %.5lf\n", passedTime);
-    #endif
+    printf("Elapsed sequential time: %.5lf\n", passedTime);
 
-    fclose(outputFile);
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
+    map = TerrainGeneration::diamondSquare(n, false);
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+
+    printCharMap("map_parallel.txt", map);
+    printBitmap("map_parallel.bmp", n, map);
+
+    double passedTimeParallel = ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec);
+
+    printf("Elapsed parallel time: %.5lf\n", passedTimeParallel);
+
+    printf("Speedup: %.5lf\n", passedTime / passedTimeParallel);
+
     return 0;
 }

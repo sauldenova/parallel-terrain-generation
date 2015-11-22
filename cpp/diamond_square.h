@@ -9,5 +9,5 @@
 #include <vector>
 
 namespace TerrainGeneration {
-    std::vector<std::vector<int16_t>> diamondSquare(uint16_t n);
+    std::vector<std::vector<int16_t>> diamondSquare(uint16_t n, bool isParallel);
 }

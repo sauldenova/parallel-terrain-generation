@@ -23,7 +23,7 @@ namespace TerrainGeneration {
      * n and m are the sizes of the diamond square and must be equal and must 
      * be $2^x - 1$
      */
-    std::vector<std::vector<int16_t>> diamondSquare(uint16_t n) {
+    std::vector<std::vector<int16_t>> diamondSquare(uint16_t n, bool isParallel) {
         if (((n - 1) & (n - 2)) != 0) {
             throw 0;
         }
@@ -44,56 +44,100 @@ namespace TerrainGeneration {
         map[n - 1][0] = 10;
         map[n - 1][n - 1] = 10;
 
-        for (int offset = n - 1; offset > 1; offset /= 2) {
+        if (isParallel) {
+            for (int offset = n - 1; offset > 1; offset /= 2) {
 
-            // Diamond generation
-            #ifdef PARALLEL
-            #pragma omp parallel for shared(map, terrain_gen, factor, offset)
-            #endif
-            for (int y = 0; y < n - 1; y += offset) {
-                for (int x = 0; x < n - 1; x += offset) {
-                    map[x + (offset / 2)][y + (offset / 2)] = (map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
-                                                              terrain_gen() * factor;
+                // Diamond generation
+                #pragma omp parallel for shared(map, terrain_gen, factor, offset)
+                for (int y = 0; y < n - 1; y += offset) {
+                    for (int x = 0; x < n - 1; x += offset) {
+                        map[x + (offset / 2)][y + (offset / 2)] = (map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
+                                                                  terrain_gen() * factor;
+                    }
                 }
-            }
 
-            // Square generation
-            #ifdef PARALLEL
-            #pragma omp parallel for shared(map, terrain_gen, factor, offset)
-            #endif
-            for (int y = 0; y < n; y += offset / 2) {
-                for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
-                    double sides = 4.0;
-                    double result = 0.0;
-                    if (x == 0) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x - (offset / 2)][y];
+                // Square generation
+                #pragma omp parallel for shared(map, terrain_gen, factor, offset)
+                for (int y = 0; y < n; y += offset / 2) {
+                    for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
+                        double sides = 4.0;
+                        double result = 0.0;
+                        if (x == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x - (offset / 2)][y];
+                        }
+
+                        if (x == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x + (offset / 2)][y];
+                        }
+
+                        if (y == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y - (offset / 2)];
+                        }
+
+                        if (y == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y + (offset / 2)];
+                        }
+
+                        map[x][y] = (result / sides) + terrain_gen() * factor;
                     }
-
-                    if (x == n - 1) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x + (offset / 2)][y];
-                    }
-
-                    if (y == 0) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x][y - (offset / 2)];
-                    }
-
-                    if (y == n - 1) {
-                        sides = 3.0;
-                    } else {
-                        result += map[x][y + (offset / 2)];
-                    }
-
-                    map[x][y] = (result / sides) + terrain_gen() * factor;
                 }
-            }
 
-            factor *= 0.8f;
+                factor *= 0.8f;
+            }
+        } else {
+            for (int offset = n - 1; offset > 1; offset /= 2) {
+
+                // Diamond generation
+                for (int y = 0; y < n - 1; y += offset) {
+                    for (int x = 0; x < n - 1; x += offset) {
+                        map[x + (offset / 2)][y + (offset / 2)] = (map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4 +
+                                                                  terrain_gen() * factor;
+                    }
+                }
+
+                // Square generation
+                for (int y = 0; y < n; y += offset / 2) {
+                    for (int x = (y + (offset / 2)) % offset; x < n; x += offset) {
+                        double sides = 4.0;
+                        double result = 0.0;
+                        if (x == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x - (offset / 2)][y];
+                        }
+
+                        if (x == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x + (offset / 2)][y];
+                        }
+
+                        if (y == 0) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y - (offset / 2)];
+                        }
+
+                        if (y == n - 1) {
+                            sides = 3.0;
+                        } else {
+                            result += map[x][y + (offset / 2)];
+                        }
+
+                        map[x][y] = (result / sides) + terrain_gen() * factor;
+                    }
+                }
+
+                factor *= 0.8f;
+            }
         }
 
         return map;
