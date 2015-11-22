@@ -46,7 +46,7 @@ static TerrainGeneration::util::color lerp(TerrainGeneration::util::color c1, Te
         if (c1.v[i] > c2.v[i]) {
             v[i] = c2.v[i] + (uint8_t)(float(c1.v[i] - c2.v[i]) * value);
         } else {
-            v[i] = c2.v[i] + (uint8_t)(float(c1.v[i] - c2.v[i]) * value);
+            v[i] = c1.v[i] + (uint8_t)(float(c1.v[i] - c2.v[i]) * value);
         }
     }
 

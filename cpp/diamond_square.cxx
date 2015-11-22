@@ -30,8 +30,6 @@ namespace TerrainGeneration {
 
         double range = 256.0;
 
-        std::queue<util::vec2<int16_t>> points;
-
         std::vector<std::vector<int16_t>> map(n, std::vector<int16_t>(n, 0));
 
         // Generate random numbers
