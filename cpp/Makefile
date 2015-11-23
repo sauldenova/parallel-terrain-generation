@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -g
+CXXFLAGS = -Wall -g -O2
 CXX11 = -std=c++0x
 PARALLELFLAGS = -fopenmp
 
