@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
     int n = 4097;
 
     clock_gettime(CLOCK_MONOTONIC, &tstart);
-    map = TerrainGeneration::diamondSquare(n, false);
+    map = TerrainGeneration::diamondSquare(n, TerrainGeneration::ParallelType::NONE);
     clock_gettime(CLOCK_MONOTONIC, &tend);
 
     printCharMap("map.txt", map);
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     printf("Elapsed sequential time: %.5lf\n", passedTime);
 
     clock_gettime(CLOCK_MONOTONIC, &tstart);
-    map = TerrainGeneration::diamondSquare(n, false);
+    map = TerrainGeneration::diamondSquare(n, TerrainGeneration::ParallelType::OPENMP);
     clock_gettime(CLOCK_MONOTONIC, &tend);
 
     printCharMap("map_parallel.txt", map);
@@ -158,6 +158,19 @@ int main(int argc, char** argv) {
     printf("Elapsed parallel time: %.5lf\n", passedTimeParallel);
 
     printf("Speedup: %.5lf\n", passedTime / passedTimeParallel);
+
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
+    map = TerrainGeneration::diamondSquare(n, TerrainGeneration::ParallelType::ASSEMBLY);
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+
+    printCharMap("map_assembly.txt", map);
+    printBitmap("map_assembly.bmp", n, map);
+
+    double passedTimeAssembly = ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec);
+
+    printf("Elapsed assembly time: %.5lf\n", passedTimeAssembly);
+
+    printf("Speedup assembly: %.5lf\n", passedTime / passedTimeAssembly);
 
     return 0;
 }

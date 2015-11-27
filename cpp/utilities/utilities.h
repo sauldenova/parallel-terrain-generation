@@ -17,6 +17,7 @@ namespace TerrainGeneration {
             T y;
 
             vec2(T x, T y) : x(x), y(y) { }
+            vec2() { }
         };
 
         template <class T>
@@ -26,6 +27,7 @@ namespace TerrainGeneration {
             T z;
 
             vec3(T x, T y, T z) : x(x), y(y), z(z) { }
+            vec3() { }
         };    
 
         struct color {
