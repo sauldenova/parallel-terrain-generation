@@ -79,7 +79,12 @@ namespace TerrainGeneration {
             }
 
             if (pointer > 0) {
-                calculateValues(results, pointer + (4 - (pointer % 4)), values, randoms, factors);
+                int p = pointer;
+                if ((p % 4) != 0) {
+                    p += (4 - (pointer % 4));
+                }
+                
+                calculateValues(results, p, values, randoms, factors);
                 for (int i = 0; i < pointer; i++) {
                     map[points[i].x][points[i].y] = results[i];
                 }
@@ -122,7 +127,12 @@ namespace TerrainGeneration {
             }
 
             if (pointer > 0) {
-                calculateValues(results, pointer + (4 - (pointer % 4)), values, randoms, factors);
+                int p = pointer;
+                if ((p % 4) != 0) {
+                    p += (4 - (pointer % 4));
+                }
+
+                calculateValues(results, p, values, randoms, factors);
                 for (int i = 0; i < pointer; i++) {
                     map[points[i].x][points[i].y] = results[i];
                 }
