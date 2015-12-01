@@ -39,7 +39,7 @@ Tecnológico de Monterrey, Campus Estado de México
 \maketitle
 
 \begin{abstract}
-Este artículo implementa generación de elevaciones de terreno. 
+Este artículo explora tres posibles implementaciones de generación de terreno paralela.
 \end{abstract}
 
 \section{Introducción}
@@ -168,15 +168,93 @@ ppp,,,,,,,....................
 ppp,pp,p,,.,..................
 \end{verbatim}
 
+\subsection{Hardware utilizado}
+
+Los programas se probaron en una laptop con las siguientes características para los programas de Java:
+
+\begin{enumerate}
+	\item Procesador Intel Core i5 de 2.4GHz con un procesador y dos cores.
+	\item 8 GB de memoria RAM.
+	\item Sistema operativo Mac OSX 10.10 Yosemite 64 bits.
+	\item Compilador Java 1.8.0\_25 de Oracle.
+\end{enumerate}
+
+En el caso de C++ se utilizó lo siguiente:
+
+\begin{enumerate}
+	\item Procesador Intel Core i5 de 2.4GHz con un procesador y dos cores.
+	\item 8 GB de memoria RAM.
+	\item Sistema operativo Ubuntu 14.04 (Trusty Tahr).
+	\item Compilador g++ 5.2. GNU make 3.81.
+\end{enumerate}
+
 \subsection{OpenMP en C++}
 
-Para esta solución 
+Para esta solución se utilizaron directivas de OpenMP.
 
 \subsubsection{Resultados}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+			& Tiempo secuencial & Tiempo paralelo & Speedup \\
+		\hline
+			Corrida1 & 6.48399 & 7.16358 & 0.90513 \\
+			Corrida2 & 6.77942 & 7.22746 & 0.93801 \\
+			Corrida3 & 7.62240 & 7.70662 & 0.98907 \\
+			Corrida4 & 8.83789 & 8.76123 & 1.00875 \\
+			Corrida5 & 7.09853 & 7.11054 & 0.99831 \\
+		\hline
+			Promedio & 7.36444 & 7.59388	 & 0.96785 \\
+		\hline
+	\end{tabular}
+	\caption{Resultados OpenMP}
+	\label{tab:openmp}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=plot_openmp.eps,width=5in}
+	\caption{Gráfica de OpenMP con C++}
+	\label{fig:plot_openmp}	
+\end{figure}
+
+En este caso el speedup no es significativo. Es más es peor que utilizar simplemente una solución secuencial. Esto lo ha sucedido al autor antes con OpenMP por lo que se considera que hay dos posibilidades o OpenMP no es un buen framework de paralelización o hay un detalle en su uso que hace que no se esté aprovechando al máximo el potencial de OpenMP.
 
 \subsection{Intrínsecos SIMD en C++}
 
+Para esta solución se utilizaron las instrucciones de SIMD que tiene el procesador.
+
 \subsubsection{Resultados}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+			& Tiempo secuencial & Tiempo paralelo & Speedup \\
+		\hline
+			Corrida1 & 6.48399 & 7.86892 & 0.82400 \\
+			Corrida2 & 6.77942 & 8.54211 & 0.79365 \\
+			Corrida3 & 7.62240 & 8.27517 & 0.92112 \\
+			Corrida4 & 8.83789 & 8.08614 & 1.09297 \\
+			Corrida5 & 8.83789 & 9.52125 & 0.74555 \\
+		\hline
+			Promedio & 7.71231 & 8.45871 & 0.87545 \\
+		\hline
+	\end{tabular}
+	\caption{Resultados SIMD}
+	\label{tab:simd}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=plot_simd.eps,width=5in}
+	\caption{Gráfica de SIMD con C++}
+	\label{fig:plot_simd}	
+\end{figure}
+
+Como podemos observar en este caso la solución con SIMD tampoco mejora la velocidad de la solución, es más, es peor que utilizar OpenMP. A diferencia de la prueba anterior, este resultado se puede explicar de manera lógica. Para realizar esta solución de manera que se aprovechara la paralelización de las instrucciones se tuvieron que ir guardando todos las operaciones que se iban a realizar sobre los diamantes y cuadrados. Al final se hacía un \textit{join} sobre estas operaciones. Esto evita el mejoramiento de velocidad. Por lo que este algoritmo no es feasible de paralelizar con SIMD ni OpenMP.
 
 \subsection{\textit{Streams} paralelos en Java}
 
@@ -198,7 +276,7 @@ Los resultados de las corridas con \textit{streams} de Java son los siguientes.
 			Corrida 4 & 4.5891 & 0.9754 & 4.7043 \\
 			Corrida 5 & 4.0893 & 1.0768 & 3.7975 \\
 		\hline
-			Promedio & 3.5911 & 1.0885 & 3.3924 \\
+			Promedio  & 3.5911 & 1.0885 & 3.3924 \\
 		\hline
 	\end{tabular}
 	\caption{Resultados streams}
@@ -212,9 +290,11 @@ Los resultados de las corridas con \textit{streams} de Java son los siguientes.
 	\label{fig:plot_stream}	
 \end{figure}
 
-Como podemos ver en Java el speedup es el único que es significativo. Esto puede ser debido a que Java no es tan rápido como C++ por lo que en este caso la mejora si es significativa.
+Como podemos ver en Java el speedup es el único que es significativo. Esto puede ser debido a que Java no es tan rápido como C++ por lo que en este caso la mejora si es significativa. 
 
 \section{Conclusiones}
+
+Generar terreno es un algoritmo que es tanto sencillo como poderoso. Este algoritmo es paralelizable utilizando \textit{Streams} en Java. En C++ el algoritmo no es tan eficiente. 
 
 \section{Agradecimientos}
 
@@ -222,20 +302,15 @@ Tarn Adams por inspirar la creación de esta investigación.
  
 \begin{thebibliography}{9}
     
-\bibitem{crsm}  
-    Departamento de letras del ITESM CEM. 
-    \emph{Guía de presentación de trabajos escritos.} \\
-    http://www.cem.itesm.mx/consulta/guia/ Accedido el 20 de octubre del 2015.
+\bibitem{morningside}
+    Morningside 
+    \emph{Diamond\_Square} \\
+    https://code.google.com/p/fractalterraingeneration/wiki/Diamond\_Square
     
-\bibitem{giybf}
-    GIYBF. 
-    \emph{Google is your best Friend!} \\
-    http://www.giybf.com/ Accedido el 20 de octubre del 2015.
-    
-\bibitem{lamport}
-    Lamport, L. 
-    \emph{\LaTeX: A Document Preparation System, 2nd Edition.} 
-    Addison-Wesley Professional, 1994.
+\bibitem{wikipedia}
+    Wikipedia
+    \emph{Diamond-square algorithm} \\
+    https://en.wikipedia.org/wiki/Diamond-square\_algorithm
 
 \end{thebibliography}
 
