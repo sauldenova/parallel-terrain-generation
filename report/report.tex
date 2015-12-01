@@ -1,0 +1,276 @@
+\documentclass[10pt,letterpaper,oneside]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{endnotes}
+\usepackage{epsfig}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\usepackage[spanish,mexico]{babel}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{dirtytalk}
+\usepackage{pdftexcmds}
+\usepackage{minted}
+\usepackage{hyperref}
+
+\begin{document}
+
+\renewcommand\abstractname{Resumen}
+\renewcommand\refname{Referencias}
+\renewcommand{\notesname}{Notas}
+
+\definecolor{plain}{RGB}{0,64,0}
+\definecolor{forest}{RGB}{133,182,116}
+\definecolor{sea}{RGB}{0,0,55}
+\definecolor{coast}{RGB}{0,53,106}
+\definecolor{mount}{RGB}{167,157,147}
+\definecolor{mountain}{RGB}{216,223,226}
+
+\newcommand\crule[3][black]{\textcolor{#1}{\rule{#2}{#3}}}
+
+\title{Generación de elevaciones en múltiples núcleos}
+\author{
+\Large Saúl de Nova Caballero (A01165957)
+\\
+Tecnológico de Monterrey, Campus Estado de México
+\\  
+\Large \textit{A01165957@itesm.mx}}  
+
+\maketitle
+
+\begin{abstract}
+Este artículo implementa generación de elevaciones de terreno. 
+\end{abstract}
+
+\section{Introducción}
+
+\subsection{Antecedentes}
+
+La generación de terreno es un tópico importante en videojuegos. Para agregar valor de rejuego (\textit{replayability} en inglés), muchos juegos deciden generar terreno nuevo cada vez que el usuario desea empezar de nuevo. A esto también se le conoce como generación procedural o generación por procedimientos.
+
+Uno de los primeros ejemplos de generación procedural se pueden encontrar en el juego Rogue desarrollado en los 80s. Este juego se utilizó en muchos sistemas Unix.
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=rogue.eps,width=3in}
+	\caption{Videojuego Rogue en un sistema moderno}
+	\label{fig:rogue}	
+\end{figure}
+
+Un ejemplo de la complejidad que puedes llegar a alcanzar con generación procedural es el videojuego conocido como \textit{Slaves to Armok: God of Blood Chapter II: Dwarf Fortress} o en corto \textit{Dwarf Fortress}. Durante su generación procedural este juego genera:
+
+\begin{enumerate}
+	\item Terreno, Biomas, Ríos, Minerales
+	\item Historia del mundo, incluyendo, creación de civilizaciones, guerras, invasiones, migraciones.
+	\item Interacciones entre actores del mundo incluyendo su nacimiento y muerte.
+	\item Personalidades a los actores
+\end{enumerate}
+
+Un ejemplo de la generación de terreno se puede encontrar en la figura \ref{fig:df}. Por limitaciones de tiempo en este artículo sólo se va a analizar la generación de elevaciones.
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=dwarffortress.eps,width=3in}
+	\caption{Mapa generado en \textit{Dwarf Fortress}}
+	\label{fig:df}	
+\end{figure}
+
+\subsection{Algoritmo de diamante-cuadro (\textit{Diamond-Square})}
+
+Para generar la elevación del terreno se utilizó un algoritmo conocido como diamante-cuadro (\textit{Diamond-Square}). Este algoritmo fue propuesto por Alain Fournier, Don Fussell y Loren Carpenter en un artículo titulado \say{Representación computacional de modelos estocásticos} (\textit{Computer rendering of stochastic models}) en el SIGGRAPH de 1982. 
+
+Este algoritmo genera un mapa de tamaño $n$ donde $n=2^k+1 \, con \, k \in Z^+$. Para la generación del mapa se utiliza el algoritmo mostrado en la figura \ref{fig:diamond_square}.
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=diamond_square.eps,width=6.4in}
+	\caption{Algoritmo de diamante-cuadro}
+	\label{fig:diamond_square}
+\end{figure}
+
+\pagebreak
+
+\section{Desarrollo}
+
+Para desarrollar este proyecto se decidieron utilizar las siguientes tecnologías:
+
+\begin{itemize}
+	\item \textit{Streams} paralelos en Java 8
+	\item \textit{OpenMP} en C++
+	\item \textit{Intrínsecos SIMD}	en C++
+\end{itemize}
+
+En el caso de \textit{OpenMP} e \textit{Intrínsecos SIMD} en C++ se realizó únicamente una versión secuencial para ambos casos. Esto debido a que realizar dos versiones secuenciales no tendría punto ya que serían iguales.
+
+Todas las versiones imprimen sus resultados a archivos de mapas de bits  (.bmp) y archivos de texto (.txt). Se decidió utilizar estos dado que imprimir en este tipo de archivos es sencillo. Las figuras \ref{fig:map1} y \ref{fig:map2} muestran un ejemplo de este tipo de mapas. 
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=map.eps,width=4in}
+	\caption{Mapa generado}
+	\label{fig:map1}	
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=map_parallel.eps,width=4in}
+	\caption{Mapa generado}
+	\label{fig:map2}	
+\end{figure}
+
+Los mapas se generaron con interpolación de 5 colores. Los colores se muestran en la tabla \ref{tab:colors}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|l|}
+		\hline
+			Color 							& Terreno		\\
+		\hline
+			\crule[plain]{0.2cm}{0.2cm} 		& Planicies 		\\
+			\crule[coast]{0.2cm}{0.2cm} 		& Costa			\\
+			\crule[sea]{0.2cm}{0.2cm} 		& Mar			\\
+			\crule[mount]{0.2cm}{0.2cm} 		& Montes			\\
+			\crule[mountain]{0.2cm}{0.2cm} 	& Montañas		\\
+		\hline
+	\end{tabular}
+	\caption{Colores terreno}
+	\label{tab:colors}
+\end{table}
+
+En el caso de los archivos de texto se utilizó la nomenclatura mostrada en la tabla \ref{tab:maptext}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|l|}
+		\hline
+			Caracter & Terreno		\\
+		\hline
+			$\wedge$& Planicies 		\\
+			h		& Costa			\\
+			p		& Mar			\\
+			,		& Montes			\\
+			. 		& Montañas		\\
+		\hline
+	\end{tabular}
+	\caption{Colores terreno}
+	\label{tab:maptext}
+\end{table}
+
+\pagebreak
+
+Un ejemplo del archivo generado se puede encontrar a continuación:
+
+\begin{verbatim}
+p,,,pp,,,,.,,.,,,.............
+p,,ppp,,,,,.,.................
+p,,,,p,,,,....................
+ppp,,,,,,,....................
+ppp,pp,p,,.,..................
+\end{verbatim}
+
+\subsection{OpenMP en C++}
+
+Para esta solución 
+
+\subsubsection{Resultados}
+
+\subsection{Intrínsecos SIMD en C++}
+
+\subsubsection{Resultados}
+
+\subsection{\textit{Streams} paralelos en Java}
+
+La solución secuencial en Java utilizó el mismo algoritmo que se utilizó en C++. Mientras que la solución paralela consistió en implementar IntStreams en Java paralelizando los pasos de generación de diamantes y generación de cuadrados. 
+
+\subsubsection{Resultados}
+
+Los resultados de las corridas con \textit{streams} de Java son los siguientes.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+			& Tiempo secuencial & Tiempo paralelo & Speedup \\
+		\hline
+			Corrida 1 & 2.7778 & 1.1076 & 2.5078 \\
+			Corrida 2 & 3.2013 & 0.8950 & 3.5769 \\
+			Corrida 3 & 3.2982 & 1.3881 & 2.3759 \\
+			Corrida 4 & 4.5891 & 0.9754 & 4.7043 \\
+			Corrida 5 & 4.0893 & 1.0768 & 3.7975 \\
+		\hline
+			Promedio & 3.5911 & 1.0885 & 3.3924 \\
+		\hline
+	\end{tabular}
+	\caption{Resultados streams}
+	\label{tab:streams}
+\end{table}
+
+\begin{figure}[H]
+	\centering
+		\epsfig{figure=plot_java.eps,width=5in}
+	\caption{Gráfica de \textit{streams} con Java}
+	\label{fig:plot_stream}	
+\end{figure}
+
+Como podemos ver en Java el speedup es el único que es significativo. Esto puede ser debido a que Java no es tan rápido como C++ por lo que en este caso la mejora si es significativa.
+
+\section{Conclusiones}
+
+\section{Agradecimientos}
+
+Tarn Adams por inspirar la creación de esta investigación.
+ 
+\begin{thebibliography}{9}
+    
+\bibitem{crsm}  
+    Departamento de letras del ITESM CEM. 
+    \emph{Guía de presentación de trabajos escritos.} \\
+    http://www.cem.itesm.mx/consulta/guia/ Accedido el 20 de octubre del 2015.
+    
+\bibitem{giybf}
+    GIYBF. 
+    \emph{Google is your best Friend!} \\
+    http://www.giybf.com/ Accedido el 20 de octubre del 2015.
+    
+\bibitem{lamport}
+    Lamport, L. 
+    \emph{\LaTeX: A Document Preparation System, 2nd Edition.} 
+    Addison-Wesley Professional, 1994.
+
+\end{thebibliography}
+
+\pagebreak
+
+\appendix
+\section{Código fuente}
+
+El código fuente se encuentra disponible en la siguiente liga:\\
+\url{https://github.com/sauldenova/parallel-terrain-generation}
+
+\subsection{OpenMP e intrínsecos SIMD en C++}
+
+\inputminted[linenos]{cpp}{../cpp/main.cxx}
+
+\inputminted[linenos]{cpp}{../cpp/diamond_square.h}
+
+\inputminted[linenos]{cpp}{../cpp/diamond_square.cxx}
+
+\inputminted[linenos]{cpp}{../cpp/utilities/utilities.h}
+
+\inputminted[linenos]{cpp}{../cpp/utilities/utilities.cxx}
+
+\inputminted[linenos]{cpp}{../cpp/diamond_square_asm.h}
+
+\inputminted[linenos]{nasm}{../cpp/diamond_square_asm.asm}
+
+\subsection{\textit{Streams} paralelos en Java}
+
+\inputminted[linenos]{java}{../java/src/com/terraingeneration/DiamondSquare.java}
+
+\inputminted[linenos]{java}{../java/src/com/terraingeneration/TerrainGeneration.java}
+
+\inputminted[linenos]{java}{../java/src/com/terraingeneration/utilities/Utilities.java}
+
+\inputminted[linenos]{java}{../java/src/com/terraingeneration/utilities/Color.java}
+
+\end{document}

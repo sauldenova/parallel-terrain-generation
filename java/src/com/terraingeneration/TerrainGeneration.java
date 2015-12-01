@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Apache License Version 2.0
+ *
+ * Saul de Nova Caballero
+ ******************************************************************************/
+
 package com.terraingeneration;
 
 import com.terraingeneration.utilities.Color;
@@ -12,6 +18,8 @@ import java.io.*;
  * Created by Saul de Nova Caballero on 11/21/15.
  */
 public class TerrainGeneration {
+
+    // All the colors that the map uses
     private static Color plain = new Color((byte)0, (byte)64, (byte)0);
     private static Color forest = new Color((byte)133, (byte)182, (byte)116);
     private static Color sea = new Color((byte)0, (byte)0, (byte)55);
@@ -63,20 +71,32 @@ public class TerrainGeneration {
      * @param value interpolation value
      * @return the color
      */
-    private static Color lerp(Color c1, Color c2, float value) {
+    private static Color lerp(
+            Color c1,
+            Color c2,
+            float value) {
         byte[] v = new byte[3];
 
         for (int i = 0; i < 3; i++) {
             if (c1.getV()[i] > c2.getV()[i]) {
-                v[i] = (byte) (c2.getV()[i] + (byte) ((float)(c1.getV()[i] - c2.getV()[i]) * value));
+                v[i] = (byte) (c2.getV()[i] + (byte)
+                               ((float)(c1.getV()[i] -
+                                        c2.getV()[i]) * value));
             } else {
-                v[i] = (byte) (c1.getV()[i] + (byte) ((float)(c1.getV()[i] - c2.getV()[i]) * value));
+                v[i] = (byte) (c1.getV()[i] + (byte)
+                               ((float)(c1.getV()[i] -
+                                        c2.getV()[i]) * value));
             }
         }
 
         return new Color(v);
     }
 
+    /**
+     * Convert a value to a color
+     * @param value the value
+     * @return the color
+     */
     private static Color convertToColor(short value) {
         value = (short)Utilities.clamp(value, -512, 512);
         if (value >= 256) {
@@ -97,11 +117,17 @@ public class TerrainGeneration {
      */
     private static void printBitMap(String fileName, int n, short[][] map) {
         try {
-            BufferedImage image = new BufferedImage(n, n, BufferedImage.TYPE_INT_RGB);
+            BufferedImage image = new BufferedImage(
+                    n,
+                    n,
+                    BufferedImage.TYPE_INT_RGB);
+
             for (int x = 0; x < n; x++) {
                 for (int y = 0; y < n; y++) {
                     Color color = convertToColor(map[x][y]);
-                    int rgb = (color.getR() & 0xff) << 16 | (color.getG() & 0xff) << 8 | (color.getB() & 0xff);
+                    int rgb = (color.getR() & 0xff) << 16 |
+                              (color.getG() & 0xff) << 8 |
+                              (color.getB() & 0xff);
                     image.setRGB(x, y, rgb);
                 }
             }
@@ -129,7 +155,7 @@ public class TerrainGeneration {
             printCharMap("map.txt", map);
             printBitMap("map.bmp", n, map);
 
-            System.out.println("Elapsed time: " + elapsedSequentialTime);
+            System.out.println("Elapsed time: " + elapsedSequentialTime / 1e9);
 
             startTime = System.nanoTime();
             map = DiamondSquare.generate(n, true);
@@ -138,8 +164,9 @@ public class TerrainGeneration {
             printCharMap("map_parallel.txt", map);
             printBitMap("map_parallel.bmp", n, map);
 
-            System.out.println("Elapsed parallel time: " + elapsedParallelTime);
-            System.out.println("Speedup: " + ((double)elapsedSequentialTime / (double)elapsedParallelTime));
+            System.out.println("Elapsed parallel time: " + elapsedParallelTime / 1e9);
+            System.out.println("Speedup: " + ((double)elapsedSequentialTime /
+                                              (double)elapsedParallelTime));
         } catch(IllegalArgumentException e) {
             System.out.println(e.getLocalizedMessage());
         }

@@ -26,7 +26,9 @@ namespace TerrainGeneration {
      * n and m are the sizes of the diamond square and must be equal and must 
      * be $2^x - 1$
      */
-    std::vector<std::vector<int16_t>> diamondSquare(uint16_t n, TerrainGeneration::ParallelType type) {
+    std::vector<std::vector<int16_t>> diamondSquare(
+        uint16_t n, 
+        TerrainGeneration::ParallelType type) {
         if (((n - 1) & (n - 2)) != 0) {
             throw 0;
         }
@@ -36,7 +38,8 @@ namespace TerrainGeneration {
         std::vector<std::vector<int16_t>> map(n, std::vector<int16_t>(n, 0));
 
         // Generate random numbers
-        std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
+        std::default_random_engine generator(
+            std::chrono::system_clock::now().time_since_epoch().count());
         std::normal_distribution<double> distribution(0, range / 2);
         float factor = 1.0f;
 
@@ -64,7 +67,8 @@ namespace TerrainGeneration {
             #pragma omp parallel for shared(map, terrain_gen, factor, offset)
             for (int y = 0; y < n - 1; y += offset) {
                 for (int x = 0; x < n - 1; x += offset) {
-                    float value = (map[x][y] + map[x][y + offset] + map[x + offset][y] + map[x + offset][y + offset]) / 4.0;
+                    float value = (map[x][y] + map[x][y + offset] + 
+                                   map[x + offset][y] + map[x + offset][y + offset]) / 4.0;
                     float random = terrain_gen();
                     if (type != TerrainGeneration::ParallelType::ASSEMBLY) {
                         map[x + (offset / 2)][y + (offset / 2)] = value + random * factor;

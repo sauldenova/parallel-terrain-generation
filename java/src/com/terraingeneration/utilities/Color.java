@@ -1,3 +1,9 @@
+/*******************************************************************************
+ * Apache License Version 2.0
+ *
+ * Saul de Nova Caballero
+ ******************************************************************************/
+
 package com.terraingeneration.utilities;
 
 import java.util.Arrays;
